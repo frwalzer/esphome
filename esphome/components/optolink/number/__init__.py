@@ -22,7 +22,7 @@ OptolinkNumber = optolink_ns.class_(
 
 
 CONFIG_SCHEMA = (
-    number.NUMBER_SCHEMA.extend(
+    number.number_schema(OptolinkSensor).extend(
         {
             cv.GenerateID(): cv.declare_id(OptolinkNumber),
             cv.Required(CONF_MAX_VALUE): cv.float_,
