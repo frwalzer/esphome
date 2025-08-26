@@ -13,7 +13,7 @@ OptolinkBinarySensor = optolink_ns.class_(
 )
 
 CONFIG_SCHEMA = (
-    binary_sensor.binary_sensor_schema(OPTOLINKBinarySensor).extend(
+    binary_sensor.binary_sensor_schema(OptolinkBinarySensor).extend(
         {
             cv.GenerateID(): cv.declare_id(OptolinkBinarySensor),
             cv.Required(CONF_ADDRESS): cv.hex_uint32_t,
