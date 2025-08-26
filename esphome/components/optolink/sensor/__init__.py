@@ -31,7 +31,7 @@ OptolinkSensor = optolink_ns.class_(
     "OptolinkSensor", sensor.Sensor, cg.PollingComponent
 )
 CONFIG_SCHEMA = cv.All(
-    sensor.sensor_schema(OPTOLINKSensor).extend(
+    sensor.sensor_schema(OptolinkSensor).extend(
         {
             cv.GenerateID(): cv.declare_id(OptolinkSensor),
             cv.Optional(CONF_TYPE, default="DATAPOINT"): cv.enum(TYPE, upper=True),
