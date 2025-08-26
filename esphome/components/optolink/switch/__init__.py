@@ -14,7 +14,7 @@ OptolinkSwitch = optolink_ns.class_(
 )
 
 CONFIG_SCHEMA = (
-    switch.switch_schema(OptolinkSensor).extend(
+    switch.switch_schema(OptolinkSwitch).extend(
         {
             cv.GenerateID(): cv.declare_id(OptolinkSwitch),
             cv.Required(CONF_ADDRESS): cv.hex_uint32_t,
