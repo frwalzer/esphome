@@ -22,13 +22,15 @@ class OptolinkSelect : public DatapointComponent, public esphome::select::Select
     for (const auto &kv : *mapping) {
       this->values_.push_back(kv.second);
     }
-    
-    esphome::FixedVector<const char *> opts(this->values.size());
-    for (auto &s : this->values) {
-      opts.push_back(s.c_str());
+
+    esphome::FixedVector<const char *> opts;
+    opts.init(this->values_.size());
+    for (auto &s : this->values_) {
+      opts.push_back(s.c_str()); opts.push_back(s.c_str());
     }
 
     traits.set_options(opts);
+    
 //    std::vector<std::string> values;
 //    for (auto &it : *mapping) {
 //      values.push_back(it.second);
