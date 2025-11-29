@@ -16,11 +16,24 @@ class OptolinkSelect : public DatapointComponent, public esphome::select::Select
 
   void set_map(std::map<std::string, std::string> *mapping) {
     mapping_ = mapping;
-    std::vector<std::string> values;
-    for (auto &it : *mapping) {
-      values.push_back(it.second);
+    
+    this->values_.clear();
+    this->values_.reserve(mapping->size());
+    for (const auto &kv : *mapping) {
+      this->values_.push_back(kv.second);
     }
-    traits.set_options(values);
+    
+    esphome::FixedVector<const char *> opts(this->values.size());
+    for (auto &s : this->values) {
+      opts.push_back(s.c_str());
+    }
+
+    traits.set_options(opts);
+//    std::vector<std::string> values;
+//    for (auto &it : *mapping) {
+//      values.push_back(it.second);
+//    }
+//    traits.set_options(values);
   };
 
  protected:
@@ -37,6 +50,7 @@ class OptolinkSelect : public DatapointComponent, public esphome::select::Select
 
  private:
   std::map<std::string, std::string> *mapping_ = nullptr;
+  std::vector<std::string> values_;
 };
 
 }  // namespace optolink
