@@ -30,12 +30,12 @@ void OptolinkTextSensor::setup() {
       set_div_ratio(DIV_RATIO_BINARY);
       break;
     case TEXT_SENSOR_TYPE_DEVICE_INFO:
-      #set_entity_category(esphome::ENTITY_CATEGORY_DIAGNOSTIC);
+      //set_entity_category(esphome::ENTITY_CATEGORY_DIAGNOSTIC);
       set_bytes(4);
       set_address(0x00f8);
       break;
     case TEXT_SENSOR_TYPE_STATE_INFO:
-      #set_entity_category(esphome::ENTITY_CATEGORY_DIAGNOSTIC);
+      //set_entity_category(esphome::ENTITY_CATEGORY_DIAGNOSTIC);
       return;  // no datapoint setup!
   }
   setup_datapoint_();
