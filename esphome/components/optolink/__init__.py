@@ -1,10 +1,13 @@
 from esphome import core, pins
 import esphome.codegen as cg
 import esphome.config_validation as cv
+import esphome.final_validate as fv
 from esphome.const import (
     CONF_ADDRESS,
+    CONF_BAUD_RATE,
     CONF_BYTES,
     CONF_DIV_RATIO,
+    CONF_HARDWARE_UART,
     CONF_ID,
     CONF_LOGGER,
     CONF_PROTOCOL,
@@ -24,6 +27,16 @@ optolink_ns = cg.esphome_ns.namespace("optolink")
 CONF_OPTOLINK_ID = "optolink_id"
 CONF_COMMUNICATION_SUSPENSION = "communication_suspension"
 CONF_MAX_RESPONSE_DELAY = "max_response_delay"
+CONF_UART = "uart"
+
+# Arduino HardwareSerial instance per hardware UART (ESP32 only)
+UARTS = {
+    "UART0": "Serial",
+    "UART1": "Serial1",
+    "UART2": "Serial2",
+}
+# ESP32 variants that have a third hardware UART
+VARIANTS_WITH_UART2 = ["ESP32", "ESP32S3"]
 
 DAY_OF_WEEK = {
     "MONDAY": 0,
@@ -135,6 +148,19 @@ def required_on_esp32(attribute):
     return validator_
 
 
+def validate_uart_for_variant(config):
+    """UART2 only exists on ESP32 variants with three hardware UARTs."""
+    if CORE.is_esp32 and config.get(CONF_UART) == "UART2":
+        from esphome.components.esp32 import get_esp32_variant
+
+        variant = get_esp32_variant()
+        if variant not in VARIANTS_WITH_UART2:
+            raise cv.Invalid(
+                f"{CONF_UART} UART2 is not available on {variant}; use UART0 or UART1"
+            )
+    return config
+
+
 CONFIG_SCHEMA = cv.All(
     cv.Schema(
         {
@@ -158,6 +184,10 @@ CONFIG_SCHEMA = cv.All(
                     min=core.TimePeriod(seconds=1), max=core.TimePeriod(seconds=10)
                 ),
             ),
+            cv.SplitDefault(CONF_UART, esp32="UART0"): cv.All(
+                cv.only_on_esp32,
+                cv.one_of(*UARTS, upper=True),
+            ),
             cv.Optional(CONF_LOGGER, default=False): cv.boolean,
         }
     ).extend(cv.COMPONENT_SCHEMA),
@@ -165,7 +195,28 @@ CONFIG_SCHEMA = cv.All(
     cv.only_on(["esp32", "esp8266"]),
     required_on_esp32(CONF_RX_PIN),
     required_on_esp32(CONF_TX_PIN),
+    validate_uart_for_variant,
 )
+
+
+def _final_validate(config):
+    """Make sure optolink and the hardware logger don't share a UART."""
+    if CONF_UART not in config:
+        return config
+    logger_conf = fv.full_config.get().get(CONF_LOGGER)
+    if (
+        logger_conf
+        and logger_conf.get(CONF_BAUD_RATE, 0) != 0
+        and logger_conf.get(CONF_HARDWARE_UART) == config[CONF_UART]
+    ):
+        raise cv.Invalid(
+            f"optolink {CONF_UART} {config[CONF_UART]} clashes with logger "
+            f"{CONF_HARDWARE_UART}; choose another UART for one of them"
+        )
+    return config
+
+
+FINAL_VALIDATE_SCHEMA = _final_validate
 
 
 async def to_code(config):
@@ -184,5 +235,6 @@ async def to_code(config):
     if CORE.is_esp32:
         cg.add(var.set_rx_pin(config[CONF_RX_PIN]))
         cg.add(var.set_tx_pin(config[CONF_TX_PIN]))
+        cg.add(var.set_uart(cg.RawExpression(f"&{UARTS[config[CONF_UART]]}")))
 
     await cg.register_component(var, config)

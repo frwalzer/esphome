@@ -16,6 +16,9 @@ class Optolink : public esphome::Component, public Print {
   bool logger_enabled_ = false;
   int rx_pin_;
   int tx_pin_;
+#if defined(USE_ESP32)
+  HardwareSerial *uart_ = &Serial;
+#endif
   uint32_t timestamp_loop_ = 0;
   uint32_t timestamp_disruption_ = 0;
   uint32_t timestamp_receive_ = 0;
@@ -35,6 +38,9 @@ class Optolink : public esphome::Component, public Print {
   void set_logger_enabled(bool logger_enabled) { logger_enabled_ = logger_enabled; }
   void set_rx_pin(int rx_pin) { rx_pin_ = rx_pin; }
   void set_tx_pin(int tx_pin) { tx_pin_ = tx_pin; }
+#if defined(USE_ESP32)
+  void set_uart(HardwareSerial *uart) { uart_ = uart; }
+#endif
   void set_communication_suspension(uint32_t communication_suspension) {
     communication_suspension_ = communication_suspension;
   }
